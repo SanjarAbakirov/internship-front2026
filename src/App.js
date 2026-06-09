@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './App.css';
+import Chat from './Chat';
 
 function App() {
-  const [isLogin, setIsLogin] = useState(true);
+  // состояние токена (читаем из localStorage)
+  const [token, setToken] = useState(localStorage.getItem('jwt') || null);
+  // режим: 'login', 'register', 'chat'
+  const [view, setView] = useState('login');
+  // данные формы
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -13,14 +18,39 @@ function App() {
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [isLogin, setIsLogin] = useState(true); // переключатель внутри формы
 
+  // обработчик успешной аутентификации
+  const handleAuthSuccess = (jwt) => {
+    localStorage.setItem('jwt', jwt);
+    setToken(jwt);
+    setView('chat');
+    setMessage('Welcome! You are logged in.');
+  };
+
+  const logout = () => {
+    localStorage.removeItem('jwt');
+    setToken(null);
+    setView('login');
+    setMessage(null);
+    setError(null);
+  };
+
+  // если уже залогинены, показываем чат
+  if (token) {
+    return (
+      <div className="App">
+        <Chat token={token} onLogout={logout} />
+      </div>
+    );
+  }
+
+  // иначе – форма логина/регистрации
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    // Очищаем ошибку поля при вводе
     setFieldErrors({ ...fieldErrors, [e.target.name]: '' });
   };
 
-  // Клиентская валидация (быстрая проверка)
   const validateClient = () => {
     const newErrors = {};
     if (!formData.username.trim()) newErrors.username = 'Username is required';
@@ -34,10 +64,8 @@ function App() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Извлечение ошибок по полям из сообщения сервера
   const parseServerErrors = (message) => {
     const parsed = {};
-    // Сообщение вида "Validation failed: {username=..., password=...}"
     const match = message.match(/Validation failed: \{(.+)\}/);
     if (match) {
       const pairs = match[1].split(', ');
@@ -68,14 +96,17 @@ function App() {
       const response = await axios.post(url, payload);
 
       if (response.data.success) {
-        setMessage(response.data.message);
+        if (response.data.token) {
+          handleAuthSuccess(response.data.token);
+        } else {
+          setMessage(response.data.message);
+        }
         setFormData({ username: '', email: '', password: '', confirmPassword: '' });
         setFieldErrors({});
       }
     } catch (err) {
       if (err.response && err.response.data) {
         const serverMsg = err.response.data.message || 'Error';
-        // Если это ошибка валидации, парсим и показываем по полям
         if (serverMsg.startsWith('Validation failed')) {
           const fieldErrs = parseServerErrors(serverMsg);
           setFieldErrors(fieldErrs);

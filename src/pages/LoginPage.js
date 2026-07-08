@@ -11,10 +11,15 @@ function LoginPage() {
 
   useEffect(() => {
     const message = location.state?.message;
-    if (message) {
-      setNotification(message);
-      window.history.replaceState({}, document.title, location.pathname);
+    if (!message) {
+      return undefined;
     }
+
+    setNotification(message);
+    window.history.replaceState({}, document.title, location.pathname);
+
+    const timer = setTimeout(() => setNotification(null), 5000);
+    return () => clearTimeout(timer);
   }, [location.pathname, location.state]);
 
   useEffect(() => {

@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from './context/AuthContext';
 
-function Chat({ token, onLogout }) {
+function Chat() {
+  const { token, logout } = useAuth();
+  const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [reply, setReply] = useState('');
 
@@ -16,13 +20,22 @@ function Chat({ token, onLogout }) {
       setReply(aiText);
     } catch (err) {
       setReply('Error: ' + (err.response?.data?.error || err.message));
+//      search here!!!
     }
   };
 
   return (
     <div className="container">
       <h2>🤖 AI Chat</h2>
-      <button onClick={onLogout} style={{ marginBottom: '10px' }}>Logout</button>
+      <button
+        onClick={() => {
+          logout();
+          navigate('/login');
+        }}
+        style={{ marginBottom: '10px' }}
+      >
+        Logout
+      </button>
       <div>
         <textarea
           rows="3"

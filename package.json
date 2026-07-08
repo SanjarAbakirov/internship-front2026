@@ -12,12 +12,7 @@
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.16.0",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4",
-
-    "success": false,
-    "message": "AI service is currently unavailable. Please try again later.",
-    "username": null,
-    "token": null
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -32,6 +27,12 @@
       "react-app",
       "react-app/jest"
     ]
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "^react-router-dom$": "<rootDir>/node_modules/react-router-dom/dist/index.js",
+      "^react-router/dom$": "<rootDir>/node_modules/react-router/dist/development/dom-export.js"
+    }
   },
   "browserslist": {
     "production": [

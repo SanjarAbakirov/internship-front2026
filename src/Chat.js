@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from './context/AuthContext';
 import ChatInput from './components/Chat/ChatInput';
 import MessageList from './components/Chat/MessageList';
+import { getChatErrorMessage, sendChatMessage } from './api/chatApi';
 import './components/Chat/Chat.css';
-
-const API_URL = 'http://localhost:8080/api/chat';
 
 function createMessage(role, content) {
   return {
@@ -17,7 +15,7 @@ function createMessage(role, content) {
 }
 
 function Chat() {
-  const { token, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
@@ -28,7 +26,7 @@ function Chat() {
     navigate('/login');
   };
 
-  const sendMessage = async () => {
+  const handleSendMessage = async () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
 
@@ -38,16 +36,10 @@ function Chat() {
     setIsLoading(true);
 
     try {
-      const res = await axios.post(
-        API_URL,
-        { message: trimmed },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const aiText = res.data?.choices?.[0]?.message?.content || 'No reply received.';
-      setMessages((prev) => [...prev, createMessage('assistant', aiText)]);
-    } catch (err) {
-      const errorText = err.response?.data?.error || err.message || 'Something went wrong.';
-      setMessages((prev) => [...prev, createMessage('error', errorText)]);
+      const aiReply = await sendChatMessage(trimmed);
+      setMessages((prev) => [...prev, createMessage('assistant', aiReply)]);
+    } catch (error) {
+      setMessages((prev) => [...prev, createMessage('error', getChatErrorMessage(error))]);
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +59,7 @@ function Chat() {
       <ChatInput
         value={input}
         onChange={setInput}
-        onSend={sendMessage}
+        onSend={handleSendMessage}
         disabled={isLoading}
       />
     </div>

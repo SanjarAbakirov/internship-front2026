@@ -1,25 +1,43 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import MessageBubble from './MessageBubble';
 
 function MessageList({ messages, isLoading }) {
-  const bottomRef = useRef(null);
+  const containerRef = useRef(null);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.scrollTop = container.scrollHeight;
   }, [messages, isLoading]);
 
   return (
-    <div className="chat-messages" role="log" aria-live="polite" aria-relevant="additions">
+    <div
+      ref={containerRef}
+      className="chat-messages"
+      role="log"
+      aria-live="polite"
+      aria-relevant="additions"
+    >
       {messages.length === 0 && !isLoading && (
         <p className="chat-messages__empty">Send a message to start the conversation.</p>
       )}
 
       {messages.map((message) => (
-        <MessageBubble key={message.id} role={message.role} content={message.content} />
+        <MessageBubble
+          key={message.id}
+          id={message.id}
+          role={message.role}
+          content={message.content}
+        />
       ))}
 
       {isLoading && (
-        <div className="chat-message chat-message--assistant chat-message--loading" aria-busy="true">
+        <div
+          className="chat-message chat-message--assistant chat-message--loading"
+          aria-busy="true"
+          data-message-id="loading-indicator"
+        >
           <span className="chat-message__label">AI</span>
           <p className="chat-message__content">
             <span className="chat-typing-indicator">
@@ -30,8 +48,6 @@ function MessageList({ messages, isLoading }) {
           </p>
         </div>
       )}
-
-      <div ref={bottomRef} />
     </div>
   );
 }

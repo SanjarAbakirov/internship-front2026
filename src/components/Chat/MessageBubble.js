@@ -1,6 +1,6 @@
 import React from 'react';
 
-function MessageBubble({ role, content }) {
+function MessageBubble({ id, role, content }) {
   const isUser = role === 'user';
   const isError = role === 'error';
 
@@ -8,6 +8,7 @@ function MessageBubble({ role, content }) {
     <div
       className={`chat-message ${isUser ? 'chat-message--user' : ''} ${isError ? 'chat-message--error' : ''}`}
       role="article"
+      data-message-id={id}
       aria-label={isUser ? 'Your message' : isError ? 'Error message' : 'AI reply'}
     >
       <span className="chat-message__label">

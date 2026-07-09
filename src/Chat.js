@@ -1,56 +1,67 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from './context/AuthContext';
+import ChatInput from './components/Chat/ChatInput';
+import MessageList from './components/Chat/MessageList';
+import { getChatErrorMessage, sendChatMessage } from './api/chatApi';
+import './components/Chat/Chat.css';
+
+function createMessage(role, content) {
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    role,
+    content,
+  };
+}
 
 function Chat() {
-  const { token, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
-  const [message, setMessage] = useState('');
-  const [reply, setReply] = useState('');
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const sendMessage = async () => {
-    if (!message.trim()) return;
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const handleSendMessage = async () => {
+    const trimmed = input.trim();
+    if (!trimmed || isLoading) return;
+
+    const userMessage = createMessage('user', trimmed);
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
     try {
-      const res = await axios.post('http://localhost:8080/api/chat',
-        { message },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const aiText = res.data?.choices?.[0]?.message?.content || 'No reply';
-      setReply(aiText);
-    } catch (err) {
-      setReply('Error: ' + (err.response?.data?.error || err.message));
-//      search here!!!
+      const aiReply = await sendChatMessage(trimmed);
+      setMessages((prev) => [...prev, createMessage('assistant', aiReply)]);
+    } catch (error) {
+      setMessages((prev) => [...prev, createMessage('error', getChatErrorMessage(error))]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="container">
-      <h2>🤖 AI Chat</h2>
-      <button
-        onClick={() => {
-          logout();
-          navigate('/login');
-        }}
-        style={{ marginBottom: '10px' }}
-      >
-        Logout
-      </button>
-      <div>
-        <textarea
-          rows="3"
-          placeholder="Ask me anything..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          style={{ width: '100%' }}
-        />
-      </div>
-      <button onClick={sendMessage} style={{ marginTop: '10px' }}>Send</button>
-      {reply && (
-        <div style={{ marginTop: '20px', background: '#f0f0f0', padding: '10px', borderRadius: '8px' }}>
-          <strong>AI:</strong> {reply}
-        </div>
-      )}
+    <div className="container chat-container">
+      <header className="chat-header">
+        <h2>AI Chat</h2>
+        <button type="button" className="chat-header__logout" onClick={handleLogout}>
+          Logout
+        </button>
+      </header>
+
+      <MessageList messages={messages} isLoading={isLoading} />
+
+      <ChatInput
+        value={input}
+        onChange={setInput}
+        onSend={handleSendMessage}
+        disabled={isLoading}
+      />
     </div>
   );
 }

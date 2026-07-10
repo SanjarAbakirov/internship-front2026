@@ -6,7 +6,7 @@ function MessageBubble({ id, role, content }) {
 
   return (
     <div
-      className={`chat-message ${isUser ? 'chat-message--user' : ''} ${isError ? 'chat-message--error' : ''}`}
+      className={`chat-message chat-message--enter ${isUser ? 'chat-message--user' : ''} ${isError ? 'chat-message--error' : ''}`}
       role="article"
       data-message-id={id}
       aria-label={isUser ? 'Your message' : isError ? 'Error message' : 'AI reply'}

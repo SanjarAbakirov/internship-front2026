@@ -1,10 +1,15 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getChatErrorMessage, sendChatMessage } from '../api/chatApi';
 import { createMessage } from '../utils/messageFactory';
+import { clearChatHistory, loadChatHistory, saveChatHistory } from '../utils/chatStorage';
 
 export function useChatConversation() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => loadChatHistory());
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    saveChatHistory(messages);
+  }, [messages]);
 
   const sendUserMessage = useCallback(async (text) => {
     const trimmed = text.trim();
@@ -26,5 +31,10 @@ export function useChatConversation() {
     return true;
   }, [isLoading]);
 
-  return { messages, isLoading, sendUserMessage };
+  const resetConversation = useCallback(() => {
+    setMessages([]);
+    clearChatHistory();
+  }, []);
+
+  return { messages, isLoading, sendUserMessage, resetConversation };
 }

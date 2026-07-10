@@ -10,9 +10,10 @@ function Chat() {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [input, setInput] = useState('');
-  const { messages, isLoading, sendUserMessage } = useChatConversation();
+  const { messages, isLoading, sendUserMessage, resetConversation } = useChatConversation();
 
   const handleLogout = () => {
+    resetConversation();
     logout();
     navigate('/login');
   };

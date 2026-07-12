@@ -2,7 +2,7 @@ import apiClient from './apiClient';
 
 export async function sendChatMessage(message) {
   const response = await apiClient.post('/api/chat', { message });
-  return response.data?.choices?.[0]?.message?.content || 'No reply received.';
+  return response.data?.reply || 'No reply received.';
 }
 
 export function getChatErrorMessage(error) {

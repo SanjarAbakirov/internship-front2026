@@ -64,7 +64,7 @@ describe('Chat', () => {
     mockPost.mockReset();
     mockPost.mockResolvedValue({
       data: {
-        choices: [{ message: { content: 'Mocked AI response' } }],
+        reply: 'Mocked AI response',
       },
     });
   });

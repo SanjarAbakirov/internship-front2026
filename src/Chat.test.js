@@ -4,12 +4,26 @@ import { MemoryRouter } from 'react-router-dom';
 import Chat from './Chat';
 import { AuthProvider } from './context/AuthContext';
 
+const mockGet = jest.fn();
 const mockPost = jest.fn();
 
 jest.mock('axios', () => {
   let requestInterceptor = null;
 
   const createMockInstance = () => ({
+    get: (url, config = {}) => {
+      let finalConfig = {
+        ...config,
+        headers: { ...(config.headers || {}) },
+        url,
+      };
+
+      if (requestInterceptor) {
+        finalConfig = requestInterceptor(finalConfig) || finalConfig;
+      }
+
+      return mockGet(finalConfig);
+    },
     post: (url, data, config = {}) => {
       let finalConfig = {
         ...config,
@@ -43,6 +57,19 @@ jest.mock('axios', () => {
 
 const TEST_JWT = 'test-jwt-token-abc123';
 
+const pastSessions = [
+  {
+    id: 'session-1',
+    title: 'React basics',
+    updatedAt: '2026-07-01T10:00:00.000Z',
+  },
+  {
+    id: 'session-2',
+    title: 'Spring Boot help',
+    updatedAt: '2026-07-02T12:30:00.000Z',
+  },
+];
+
 function renderAuthenticatedChat(token = TEST_JWT) {
   if (token) {
     localStorage.setItem('jwt', token);
@@ -61,10 +88,33 @@ function renderAuthenticatedChat(token = TEST_JWT) {
 
 describe('Chat', () => {
   beforeEach(() => {
+    mockGet.mockReset();
     mockPost.mockReset();
+
+    mockGet.mockImplementation(({ url }) => {
+      if (url === '/api/chat/sessions') {
+        return Promise.resolve({ data: pastSessions });
+      }
+
+      if (url === '/api/chat/sessions/session-1') {
+        return Promise.resolve({
+          data: {
+            id: 'session-1',
+            messages: [
+              { id: 'm1', role: 'USER', content: 'What is React?', createdAt: '2026-07-01T10:00:00.000Z' },
+              { id: 'm2', role: 'ASSISTANT', content: 'React is a UI library.', createdAt: '2026-07-01T10:00:01.000Z' },
+            ],
+          },
+        });
+      }
+
+      return Promise.reject(new Error(`Unhandled GET ${url}`));
+    });
+
     mockPost.mockResolvedValue({
       data: {
         reply: 'Mocked AI response',
+        sessionId: 'session-new',
       },
     });
   });
@@ -73,13 +123,15 @@ describe('Chat', () => {
     localStorage.clear();
   });
 
-  test('renders the message input and send button in an authenticated context', () => {
+  test('renders the message input and send button in an authenticated context', async () => {
     renderAuthenticatedChat();
 
     expect(screen.getByRole('heading', { name: /AI Chat/i })).toBeInTheDocument();
     expect(screen.getByLabelText('Message input')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Send/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument();
+
+    expect(await screen.findByText('React basics')).toBeInTheDocument();
   });
 
   test('lets the user type a message and click send', async () => {
@@ -127,5 +179,59 @@ describe('Chat', () => {
 
     expect(await screen.findByText('Unauthorized chat access')).toBeInTheDocument();
     expect(screen.getByLabelText('Error message')).toBeInTheDocument();
+  });
+
+  test('loads a past conversation when clicked and clears the previous messages', async () => {
+    renderAuthenticatedChat(TEST_JWT);
+
+    await userEvent.type(screen.getByLabelText('Message input'), 'Temporary message');
+    await userEvent.click(screen.getByRole('button', { name: /Send/i }));
+    expect(await screen.findByText('Temporary message')).toBeInTheDocument();
+
+    await userEvent.click(await screen.findByRole('button', { name: /React basics/i }));
+
+    await waitFor(() => {
+      expect(mockGet).toHaveBeenCalledWith(
+        expect.objectContaining({ url: '/api/chat/sessions/session-1' })
+      );
+    });
+
+    expect(await screen.findByText('What is React?')).toBeInTheDocument();
+    expect(screen.getByText('React is a UI library.')).toBeInTheDocument();
+    expect(screen.queryByText('Temporary message')).not.toBeInTheDocument();
+    expect(screen.getByText('Continuing conversation')).toBeInTheDocument();
+  });
+
+  test('starts a new chat and clears the active session', async () => {
+    renderAuthenticatedChat(TEST_JWT);
+
+    await userEvent.click(await screen.findByRole('button', { name: /React basics/i }));
+    expect(await screen.findByText('What is React?')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /New Chat/i }));
+
+    expect(screen.queryByText('What is React?')).not.toBeInTheDocument();
+    expect(screen.queryByText('Continuing conversation')).not.toBeInTheDocument();
+    expect(screen.getByText(/Send a message to start the conversation/i)).toBeInTheDocument();
+  });
+
+  test('includes sessionId when sending a message in an existing conversation', async () => {
+    renderAuthenticatedChat(TEST_JWT);
+
+    await userEvent.click(await screen.findByRole('button', { name: /React basics/i }));
+    await screen.findByText('What is React?');
+
+    await userEvent.type(screen.getByLabelText('Message input'), 'Follow-up question');
+    await userEvent.click(screen.getByRole('button', { name: /Send/i }));
+
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalled();
+    });
+
+    const requestConfig = mockPost.mock.calls[mockPost.mock.calls.length - 1][0];
+    expect(requestConfig.data).toEqual({
+      message: 'Follow-up question',
+      sessionId: 'session-1',
+    });
   });
 });

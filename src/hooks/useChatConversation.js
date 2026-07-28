@@ -1,15 +1,34 @@
-import { useCallback, useEffect, useState } from 'react';
-import { getChatErrorMessage, sendChatMessage } from '../api/chatApi';
+import { useCallback, useState } from 'react';
+import {
+  fetchChatSession,
+  getChatErrorMessage,
+  sendChatMessage,
+} from '../api/chatApi';
+import { useChatSession } from '../context/ChatSessionContext';
 import { createMessage } from '../utils/messageFactory';
-import { clearChatHistory, loadChatHistory, saveChatHistory } from '../utils/chatStorage';
 
-export function useChatConversation() {
-  const [messages, setMessages] = useState(() => loadChatHistory());
+export function useChatConversation({ onSessionCreated } = {}) {
+  const { activeSessionId, setActiveSessionId, startNewChat } = useChatSession();
+  const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyError, setHistoryError] = useState(null);
 
-  useEffect(() => {
-    saveChatHistory(messages);
-  }, [messages]);
+  const loadSession = useCallback(async (sessionId) => {
+    setIsLoadingHistory(true);
+    setHistoryError(null);
+    setActiveSessionId(sessionId);
+
+    try {
+      const session = await fetchChatSession(sessionId);
+      setMessages(session.messages);
+    } catch (error) {
+      setMessages([]);
+      setHistoryError(getChatErrorMessage(error));
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [setActiveSessionId]);
 
   const sendUserMessage = useCallback(async (text) => {
     const trimmed = text.trim();
@@ -20,8 +39,17 @@ export function useChatConversation() {
     setIsLoading(true);
 
     try {
-      const aiReply = await sendChatMessage(trimmed);
-      setMessages((prev) => [...prev, createMessage('assistant', aiReply)]);
+      const { reply, sessionId } = await sendChatMessage(trimmed, activeSessionId);
+      setMessages((prev) => [...prev, createMessage('assistant', reply)]);
+
+      if (!activeSessionId && sessionId) {
+        setActiveSessionId(sessionId);
+        onSessionCreated?.({
+          id: sessionId,
+          title: trimmed.slice(0, 60),
+          updatedAt: new Date().toISOString(),
+        });
+      }
     } catch (error) {
       setMessages((prev) => [...prev, createMessage('error', getChatErrorMessage(error))]);
     } finally {
@@ -29,12 +57,27 @@ export function useChatConversation() {
     }
 
     return true;
-  }, [isLoading]);
+  }, [activeSessionId, isLoading, onSessionCreated, setActiveSessionId]);
+
+  const beginNewChat = useCallback(() => {
+    startNewChat();
+    setMessages([]);
+    setHistoryError(null);
+  }, [startNewChat]);
 
   const resetConversation = useCallback(() => {
-    setMessages([]);
-    clearChatHistory();
-  }, []);
+    beginNewChat();
+  }, [beginNewChat]);
 
-  return { messages, isLoading, sendUserMessage, resetConversation };
+  return {
+    messages,
+    activeSessionId,
+    isLoading,
+    isLoadingHistory,
+    historyError,
+    sendUserMessage,
+    loadSession,
+    beginNewChat,
+    resetConversation,
+  };
 }

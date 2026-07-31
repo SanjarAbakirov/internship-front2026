@@ -136,6 +136,7 @@ describe('Chat', () => {
 
   test('lets the user type a message and click send', async () => {
     renderAuthenticatedChat();
+    await screen.findByText('React basics');
 
     const input = screen.getByLabelText('Message input');
     await userEvent.type(input, 'Hello from test');
@@ -150,6 +151,7 @@ describe('Chat', () => {
 
   test('sends the message with Authorization header and displays the mocked AI response', async () => {
     renderAuthenticatedChat(TEST_JWT);
+    await screen.findByText('React basics');
 
     await userEvent.type(screen.getByLabelText('Message input'), 'What is React?');
     await userEvent.click(screen.getByRole('button', { name: /Send/i }));

@@ -175,6 +175,7 @@ describe('Chat', () => {
     });
 
     renderAuthenticatedChat(TEST_JWT);
+    await screen.findByText('React basics');
 
     await userEvent.type(screen.getByLabelText('Message input'), 'Trigger error');
     await userEvent.click(screen.getByRole('button', { name: /Send/i }));

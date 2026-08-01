@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { fetchChatSessions, getChatErrorMessage } from '../../api/chatApi';
 
 function formatSessionDate(value) {
@@ -25,23 +25,26 @@ function ConversationSidebar({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadSessions = useCallback(async () => {
+  useEffect(() => {
+    let isMounted = true;
     setIsLoading(true);
     setError(null);
 
-    try {
-      const data = await fetchChatSessions();
-      setSessions(data);
-    } catch (err) {
-      setError(getChatErrorMessage(err));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    fetchChatSessions()
+      .then((data) => {
+        if (isMounted) setSessions(data);
+      })
+      .catch((err) => {
+        if (isMounted) setError(getChatErrorMessage(err));
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
 
-  useEffect(() => {
-    loadSessions();
-  }, [loadSessions, refreshKey]);
+    return () => {
+      isMounted = false;
+    };
+  }, [refreshKey]);
 
   const handleSelectSession = (sessionId) => {
     if (sessionId === activeSessionId) return;

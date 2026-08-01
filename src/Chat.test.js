@@ -44,6 +44,9 @@ jest.mock('axios', () => {
           requestInterceptor = callback;
         },
       },
+      response: {
+        use: jest.fn(),
+      },
     },
   });
 

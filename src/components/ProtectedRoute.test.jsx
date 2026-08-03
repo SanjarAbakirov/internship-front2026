@@ -45,9 +45,7 @@ describe('ProtectedRoute', () => {
     renderProtectedChatRoute('/chat');
 
     expect(screen.queryByText('Chat Content')).not.toBeInTheDocument();
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      UNAUTHORIZED_CHAT_MESSAGE
-    );
+    expect(screen.getByRole('alert')).toHaveTextContent(UNAUTHORIZED_CHAT_MESSAGE);
     expect(screen.getByRole('heading', { name: /Sign In/i })).toBeInTheDocument();
   });
 });

@@ -1,15 +1,11 @@
-import {
-  fetchChatSession,
-  fetchChatSessions,
-  mapApiMessage,
-  sendChatMessage,
-} from './chatApi';
+import { vi } from 'vitest';
+import { fetchChatSession, fetchChatSessions, mapApiMessage, sendChatMessage } from './chatApi';
 
-jest.mock('./apiClient', () => ({
+vi.mock('./apiClient', () => ({
   __esModule: true,
   default: {
-    get: jest.fn(),
-    post: jest.fn(),
+    get: vi.fn(),
+    post: vi.fn(),
   },
 }));
 

@@ -61,9 +61,7 @@ function ChatContent() {
         <header className="chat-header">
           <div>
             <h2>AI Chat</h2>
-            {activeSessionId && (
-              <p className="chat-header__session">Continuing conversation</p>
-            )}
+            {activeSessionId && <p className="chat-header__session">Continuing conversation</p>}
           </div>
           <button type="button" className="chat-header__logout" onClick={handleLogout}>
             Logout
@@ -76,10 +74,7 @@ function ChatContent() {
           </div>
         )}
 
-        <MessageList
-          messages={messages}
-          isLoading={isLoading || isLoadingHistory}
-        />
+        <MessageList messages={messages} isLoading={isLoading || isLoadingHistory} />
 
         <ChatInput
           value={input}

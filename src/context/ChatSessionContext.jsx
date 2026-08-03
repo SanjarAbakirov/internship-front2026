@@ -23,11 +23,7 @@ export function ChatSessionProvider({ children }) {
     [activeSessionId, startNewChat, selectSession]
   );
 
-  return (
-    <ChatSessionContext.Provider value={value}>
-      {children}
-    </ChatSessionContext.Provider>
-  );
+  return <ChatSessionContext.Provider value={value}>{children}</ChatSessionContext.Provider>;
 }
 
 export function useChatSession() {

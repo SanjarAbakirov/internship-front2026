@@ -1,13 +1,14 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { vi } from 'vitest';
 import Chat from './Chat';
 import { AuthProvider } from './context/AuthContext';
 
-const mockGet = jest.fn();
-const mockPost = jest.fn();
+const mockGet = vi.fn();
+const mockPost = vi.fn();
 
-jest.mock('axios', () => {
+vi.mock('axios', () => {
   let requestInterceptor = null;
 
   const createMockInstance = () => ({
@@ -45,7 +46,7 @@ jest.mock('axios', () => {
         },
       },
       response: {
-        use: jest.fn(),
+        use: vi.fn(),
       },
     },
   });
@@ -53,7 +54,7 @@ jest.mock('axios', () => {
   return {
     __esModule: true,
     default: {
-      create: jest.fn(() => createMockInstance()),
+      create: vi.fn(() => createMockInstance()),
     },
   };
 });
@@ -104,8 +105,18 @@ describe('Chat', () => {
           data: {
             id: 'session-1',
             messages: [
-              { id: 'm1', role: 'USER', content: 'What is React?', createdAt: '2026-07-01T10:00:00.000Z' },
-              { id: 'm2', role: 'ASSISTANT', content: 'React is a UI library.', createdAt: '2026-07-01T10:00:01.000Z' },
+              {
+                id: 'm1',
+                role: 'USER',
+                content: 'What is React?',
+                createdAt: '2026-07-01T10:00:00.000Z',
+              },
+              {
+                id: 'm2',
+                role: 'ASSISTANT',
+                content: 'React is a UI library.',
+                createdAt: '2026-07-01T10:00:01.000Z',
+              },
             ],
           },
         });

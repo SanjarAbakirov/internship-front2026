@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-export const API_BASE_URL = 'http://localhost:8080';
+// Override via VITE_API_BASE_URL (see .env.example) for staging/prod builds.
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

@@ -1,4 +1,8 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 body {
   font-family: -apple-system, sans-serif;
@@ -9,17 +13,23 @@ body {
   align-items: center;
 }
 
-.App { padding: 20px; }
+.App {
+  padding: 20px;
+}
 
 .container {
   background: white;
   border-radius: 16px;
   padding: 40px;
   width: 400px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-h1 { text-align: center; margin-bottom: 24px; color: #333; }
+h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #333;
+}
 
 .tabs {
   display: flex;
@@ -44,7 +54,9 @@ h1 { text-align: center; margin-bottom: 24px; color: #333; }
   margin-bottom: -2px;
 }
 
-.form-group { margin-bottom: 16px; }
+.form-group {
+  margin-bottom: 16px;
+}
 
 input {
   width: 100%;
@@ -55,8 +67,14 @@ input {
   transition: border-color 0.3s;
 }
 
-input:focus { outline: none; border-color: #667eea; }
-.input-error { border-color: #e74c3c !important; background: #fff5f5; }
+input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+.input-error {
+  border-color: #e74c3c !important;
+  background: #fff5f5;
+}
 
 .error {
   color: #e74c3c;
@@ -77,7 +95,9 @@ input:focus { outline: none; border-color: #667eea; }
   transition: all 0.3s;
 }
 
-.btn:hover { background: #5a6fd6; }
+.btn:hover {
+  background: #5a6fd6;
+}
 
 .success {
   padding: 12px;

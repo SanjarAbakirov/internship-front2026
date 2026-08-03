@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import apiClient from './api/apiClient';
 
 function AuthForm({ isLogin, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -11,6 +11,7 @@ function AuthForm({ isLogin, onSuccess }) {
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -51,16 +52,15 @@ function AuthForm({ isLogin, onSuccess }) {
     setFieldErrors({});
     if (!validateClient()) return;
 
+    setIsSubmitting(true);
     try {
-      const url = isLogin
-        ? 'http://localhost:8080/api/auth/login'
-        : 'http://localhost:8080/api/auth/register';
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
 
       const payload = isLogin
         ? { username: formData.username, password: formData.password }
         : { username: formData.username, email: formData.email, password: formData.password };
 
-      const response = await axios.post(url, payload);
+      const response = await apiClient.post(endpoint, payload);
 
       if (response.data.success) {
         if (response.data.token) {
@@ -82,6 +82,8 @@ function AuthForm({ isLogin, onSuccess }) {
       } else {
         setError('Network error. Please try again.');
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -91,12 +93,15 @@ function AuthForm({ isLogin, onSuccess }) {
       {error && <div className="error-box">{error}</div>}
 
       <div className="form-group">
+        <label htmlFor="auth-username">Username</label>
         <input
+          id="auth-username"
           type="text"
           name="username"
           placeholder="Username"
           value={formData.username}
           onChange={handleChange}
+          disabled={isSubmitting}
           className={fieldErrors.username ? 'input-error' : ''}
         />
         {fieldErrors.username && <span className="error">{fieldErrors.username}</span>}
@@ -104,12 +109,15 @@ function AuthForm({ isLogin, onSuccess }) {
 
       {!isLogin && (
         <div className="form-group">
+          <label htmlFor="auth-email">Email</label>
           <input
+            id="auth-email"
             type="email"
             name="email"
             placeholder="Email"
             value={formData.email}
             onChange={handleChange}
+            disabled={isSubmitting}
             className={fieldErrors.email ? 'input-error' : ''}
           />
           {fieldErrors.email && <span className="error">{fieldErrors.email}</span>}
@@ -117,12 +125,15 @@ function AuthForm({ isLogin, onSuccess }) {
       )}
 
       <div className="form-group">
+        <label htmlFor="auth-password">Password</label>
         <input
+          id="auth-password"
           type="password"
           name="password"
           placeholder="Password"
           value={formData.password}
           onChange={handleChange}
+          disabled={isSubmitting}
           className={fieldErrors.password ? 'input-error' : ''}
         />
         {fieldErrors.password && <span className="error">{fieldErrors.password}</span>}
@@ -130,12 +141,15 @@ function AuthForm({ isLogin, onSuccess }) {
 
       {!isLogin && (
         <div className="form-group">
+          <label htmlFor="auth-confirm-password">Confirm Password</label>
           <input
+            id="auth-confirm-password"
             type="password"
             name="confirmPassword"
             placeholder="Confirm Password"
             value={formData.confirmPassword}
             onChange={handleChange}
+            disabled={isSubmitting}
             className={fieldErrors.confirmPassword ? 'input-error' : ''}
           />
           {fieldErrors.confirmPassword && (
@@ -144,8 +158,8 @@ function AuthForm({ isLogin, onSuccess }) {
         </div>
       )}
 
-      <button type="submit" className="btn">
-        {isLogin ? 'Sign In' : 'Create Account'}
+      <button type="submit" className="btn" disabled={isSubmitting}>
+        {isSubmitting ? 'Please wait…' : isLogin ? 'Sign In' : 'Create Account'}
       </button>
     </form>
   );

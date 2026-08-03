@@ -11,9 +11,7 @@ function MessageBubble({ id, role, content }) {
       data-message-id={id}
       aria-label={isUser ? 'Your message' : isError ? 'Error message' : 'AI reply'}
     >
-      <span className="chat-message__label">
-        {isUser ? 'You' : isError ? 'Error' : 'AI'}
-      </span>
+      <span className="chat-message__label">{isUser ? 'You' : isError ? 'Error' : 'AI'}</span>
       <p className="chat-message__content">{content}</p>
     </div>
   );

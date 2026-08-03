@@ -32,9 +32,7 @@ export async function fetchChatSessions() {
   const payload = response.data;
   const sessions = Array.isArray(payload) ? payload : payload?.sessions || [];
 
-  return sessions
-    .map(normalizeSession)
-    .filter((session) => Boolean(session.id));
+  return sessions.map(normalizeSession).filter((session) => Boolean(session.id));
 }
 
 export async function fetchChatSession(sessionId) {

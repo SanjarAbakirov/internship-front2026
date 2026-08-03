@@ -15,12 +15,7 @@ function formatSessionDate(value) {
   });
 }
 
-function ConversationSidebar({
-  activeSessionId,
-  onSelectSession,
-  onStartNewChat,
-  refreshKey = 0,
-}) {
+function ConversationSidebar({ activeSessionId, onSelectSession, onStartNewChat, refreshKey = 0 }) {
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -53,19 +48,13 @@ function ConversationSidebar({
 
   return (
     <aside className="conversation-sidebar" aria-label="Past conversations">
-      <button
-        type="button"
-        className="conversation-sidebar__new-chat"
-        onClick={onStartNewChat}
-      >
+      <button type="button" className="conversation-sidebar__new-chat" onClick={onStartNewChat}>
         + New Chat
       </button>
 
       <h3 className="conversation-sidebar__title">Past Conversations</h3>
 
-      {isLoading && (
-        <p className="conversation-sidebar__status">Loading conversations...</p>
-      )}
+      {isLoading && <p className="conversation-sidebar__status">Loading conversations...</p>}
 
       {!isLoading && error && (
         <p className="conversation-sidebar__error" role="alert">

@@ -128,7 +128,7 @@ describe('Chat', () => {
     mockPost.mockResolvedValue({
       data: {
         reply: 'Mocked AI response',
-        sessionId: 'session-new',
+        conversationId: 'session-new',
       },
     });
   });
@@ -232,7 +232,7 @@ describe('Chat', () => {
     expect(screen.getByText(/Send a message to start the conversation/i)).toBeInTheDocument();
   });
 
-  test('includes sessionId when sending a message in an existing conversation', async () => {
+  test('includes conversationId when sending a message in an existing conversation', async () => {
     renderAuthenticatedChat(TEST_JWT);
 
     await userEvent.click(await screen.findByRole('button', { name: /React basics/i }));
@@ -248,7 +248,7 @@ describe('Chat', () => {
     const requestConfig = mockPost.mock.calls[mockPost.mock.calls.length - 1][0];
     expect(requestConfig.data).toEqual({
       message: 'Follow-up question',
-      sessionId: 'session-1',
+      conversationId: 'session-1',
     });
   });
 });

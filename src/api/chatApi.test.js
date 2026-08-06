@@ -53,17 +53,27 @@ describe('chatApi', () => {
     });
   });
 
-  test('sendChatMessage includes sessionId when provided', async () => {
+  test('sendChatMessage includes conversationId when provided', async () => {
     apiClient.post.mockResolvedValue({
-      data: { reply: 'Answer', sessionId: 's1' },
+      data: {
+        reply: 'Answer',
+        conversationId: 's1',
+        conversationTitle: 'Hello',
+        newConversation: false,
+      },
     });
 
     const result = await sendChatMessage('Hello', 's1');
 
     expect(apiClient.post).toHaveBeenCalledWith('/api/chat', {
       message: 'Hello',
-      sessionId: 's1',
+      conversationId: 's1',
     });
-    expect(result).toEqual({ reply: 'Answer', sessionId: 's1' });
+    expect(result).toEqual({
+      reply: 'Answer',
+      sessionId: 's1',
+      title: 'Hello',
+      isNewConversation: false,
+    });
   });
 });

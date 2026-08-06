@@ -50,14 +50,16 @@ export async function sendChatMessage(message, sessionId = null) {
   const body = { message };
 
   if (sessionId) {
-    body.sessionId = sessionId;
+    body.conversationId = sessionId;
   }
 
   const response = await apiClient.post('/api/chat', body);
 
   return {
     reply: response.data?.reply || 'No reply received.',
-    sessionId: response.data?.sessionId || sessionId || null,
+    sessionId: response.data?.conversationId || sessionId || null,
+    title: response.data?.conversationTitle || null,
+    isNewConversation: Boolean(response.data?.newConversation),
   };
 }
 

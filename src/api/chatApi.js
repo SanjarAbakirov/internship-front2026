@@ -64,5 +64,12 @@ export async function sendChatMessage(message, sessionId = null) {
 }
 
 export function getChatErrorMessage(error) {
-  return error.response?.data?.error || error.message || 'Something went wrong.';
+  // Backend error responses use `message` (see AuthResponse/GlobalExceptionHandler);
+  // `error` is kept as a fallback in case that shape ever changes.
+  return (
+    error.response?.data?.message ||
+    error.response?.data?.error ||
+    error.message ||
+    'Something went wrong.'
+  );
 }
